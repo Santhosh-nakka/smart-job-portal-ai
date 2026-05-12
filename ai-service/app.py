@@ -1,28 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-
 import pdfplumber
-
-from pymongo import MongoClient
-
-from datetime import datetime
 
 app = Flask(__name__)
 
 CORS(app)
-
-# =========================================
-# 🔥 MONGODB CONNECTION
-# =========================================
-client = MongoClient(
-    "mongodb://localhost:27017/"
-)
-
-db = client["ai_job_portal"]
-
-users_collection = db["users"]
-
-resume_history_collection = db["resume_history"]
 
 # =========================================
 # 🔥 SKILLS DATABASE
@@ -151,94 +133,6 @@ def home():
     return "AI Resume Analyzer Backend Running 🚀"
 
 # =========================================
-# ✅ REGISTER
-# =========================================
-@app.route("/register", methods=["POST"])
-def register():
-
-    data = request.json
-
-    name = data.get("name")
-
-    email = data.get("email")
-
-    password = data.get("password")
-
-    if not name or not email or not password:
-
-        return jsonify({
-            "error": "All fields required"
-        }), 400
-
-    existing = users_collection.find_one({
-        "email": email
-    })
-
-    if existing:
-
-        return jsonify({
-            "error": "User already exists"
-        }), 409
-
-    users_collection.insert_one({
-
-        "name": name,
-
-        "email": email,
-
-        "password": password
-    })
-
-    return jsonify({
-        "message": "User registered successfully"
-    }), 201
-
-# =========================================
-# ✅ LOGIN
-# =========================================
-@app.route("/login", methods=["POST"])
-def login():
-
-    data = request.json
-
-    email = data.get("email")
-
-    password = data.get("password")
-
-    if not email or not password:
-
-        return jsonify({
-            "error": "Email & password required"
-        }), 400
-
-    user = users_collection.find_one({
-        "email": email
-    })
-
-    if not user:
-
-        return jsonify({
-            "error": "User not found"
-        }), 404
-
-    if user["password"] != password:
-
-        return jsonify({
-            "error": "Incorrect password"
-        }), 401
-
-    return jsonify({
-
-        "message": "Login successful",
-
-        "user": {
-            "name": user["name"],
-            "email": user["email"]
-        }
-
-    }), 200
-
-# =========================================
 # ✅ RESUME PARSER + AI ANALYSIS
 # =========================================
 @app.route("/parse", methods=["POST"])
@@ -283,7 +177,6 @@ def parse_resume():
     # =====================================
     # 🔥 REALISTIC RESUME SCORE
     # =====================================
-
     score = 15
 
     # SKILL SCORE
@@ -387,25 +280,6 @@ def parse_resume():
         )
 
     # =====================================
-    # 🔥 SAVE HISTORY
-    # =====================================
-    resume_history_collection.insert_one({
-
-        "file_name": file.filename,
-
-        "resume_score": score,
-
-        "ats_status": ats_status,
-
-        "skills": found_skills,
-
-        "uploaded_at":
-            datetime.now().strftime(
-                "%d-%m-%Y %H:%M:%S"
-            )
-    })
-
-    # =====================================
     # ✅ RESPONSE
     # =====================================
     return jsonify({
@@ -422,28 +296,12 @@ def parse_resume():
     })
 
 # =========================================
-# ✅ RESUME HISTORY API
-# =========================================
-@app.route("/history", methods=["GET"])
-def get_history():
-
-    history = list(
-
-        resume_history_collection.find(
-            {},
-            {"_id": 0}
-        ).sort("uploaded_at", -1)
-
-    )
-
-    return jsonify(history)
-
-# =========================================
 # 🚀 RUN SERVER
 # =========================================
 if __name__ == "__main__":
 
-    app.run(host="0.0.0.0",
+    app.run(
+        host="0.0.0.0",
         port=5050,
         debug=True
     )

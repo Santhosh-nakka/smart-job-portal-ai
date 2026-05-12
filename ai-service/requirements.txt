@@ -2,4 +2,3 @@ flask
 flask-cors
 pdfplumber
 gunicorn
-pymongo
