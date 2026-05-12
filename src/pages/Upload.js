@@ -188,7 +188,7 @@ function Upload() {
       setLoading(true);
 
       const res = await axios.post(
-        "http://127.0.0.1:5000/parse",
+        "https://smart-job-backend-dcpt.onrender.com/parse",
         formData
       );
 

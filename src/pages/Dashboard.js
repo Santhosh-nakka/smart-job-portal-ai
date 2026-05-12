@@ -39,7 +39,7 @@ function Dashboard() {
     try {
 
       const res = await axios.get(
-        "http://127.0.0.1:5000/history"
+        "https://smart-job-backend-dcpt.onrender.com/history"
       );
 
       setHistory(res.data);
